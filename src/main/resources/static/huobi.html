@@ -1,0 +1,371 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta content="width=device-width,initial-scale=1,minimal-ui" name="viewport">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700,400italic|Material+Icons">
+    <link rel="stylesheet" href="https://unpkg.com/vue-material@beta/dist/vue-material.min.css">
+    <link rel="stylesheet" href="https://unpkg.com/vue-material@beta/dist/theme/default.css">
+    <style>
+        html,body{
+            height: 100%;
+            overflow-x: hidden;
+        }
+        #app{
+            height: 100%;
+        }
+        .line-black{
+            border-bottom: solid 2px #000000
+        }
+        .line-white{
+            border-bottom: solid 2px #ffffff
+        }
+        .red{
+            color: #ff5252;
+        }
+    </style>
+</head>
+
+<body>
+<div id="app">
+    <!-- Your code here -->
+
+    <md-content style="height:100%">
+        <div class="md-layout-item md-layout md-gutter" style="height: 408px">
+            <div class="md-layout-item" style="height: 100%">
+                <md-table style="height: 100%;overflow-x: hidden" v-model="result.buy.result" md-sort="name" md-sort-order="asc" md-card md-fixed-header>
+                    <md-table-toolbar>
+                        <div class="md-layout md-gutter" style="width:100%;">
+                            <div class="md-layout-item md-layout md-gutter">
+                                <div class="md-layout-item">
+                                    <md-button>购买</md-button>
+                                    <md-button v-on:click="requestServer('BTH','buy',1,0)" class="md-raised" :disabled="buttons[0].disabled"><span :class="success.buy==0?'line-black':''">{{buttons[0].currencyType}}</span></md-button>
+                                    <md-button v-on:click="requestServer('ETH','buy',1,1)" class="md-raised" :disabled="buttons[1].disabled"><span :class="success.buy==1?'line-black':''">{{buttons[1].currencyType}}</span></md-button>
+                                    <md-button v-on:click="requestServer('USDT','buy',1,2)" class="md-raised" :disabled="buttons[2].disabled"><span :class="success.buy==2?'line-black':''">{{buttons[2].currencyType}}</span></md-button>
+                                    <md-button>比特币价格:{{BTC.current}}</md-button>
+                                </div>
+                            </div>
+                        </div>
+                    </md-table-toolbar>
+
+                    <md-table-row slot="md-table-row" slot-scope="{ item }">
+                        <md-table-cell md-label="#"><span>{{ item.hash }}</span></md-table-cell>
+                        <md-table-cell md-label="价格"><span>{{ item.price }}</span></md-table-cell>
+
+                        <md-table-cell style="text-align: left" md-label="币数量">
+                            <span>{{ format(item.tradeCount) }}</span>
+                            <span :class="isRed(item.change.tradeCount)?'red':''" v-if="item.change&&item.change.tradeCount!=0">({{item.change.tradeCount>0?'+':'-'}}{{format(item.change.tradeCount)}})</span>
+                        </md-table-cell>
+                        <md-table-cell style="text-align: left" md-label="挂单人数" md-sort-by="times">
+                            <span>{{ item.times }}</span>
+                            <span :class="isRed(item.change.human)?'red':''" v-if="item.change&&item.change.human!=0">({{item.change.human>0?'+':'-'}}{{format(item.change.human)}})</span>
+                        </md-table-cell>
+                    </md-table-row>
+                </md-table>
+
+            </div>
+            <div class="md-layout-item" style="height: 100%">
+                <md-table style="height: 100%;overflow-x: hidden" v-model="result.sale.result" md-sort="name" md-sort-order="asc" md-card md-fixed-header>
+                    <md-table-toolbar>
+                        <div class="md-layout md-gutter" style="width:100%">
+                            <div class="md-layout-item md-layout md-gutter">
+                                <div class="md-layout-item">
+                                    <md-button class="md-primary">出售</md-button>
+                                    <md-button v-on:click="requestServer('BTH','sale',1,3)" class="md-raised md-primary" :disabled="buttons[3].disabled"><span :class="success.sale==3?'line-white':''">{{buttons[3].currencyType}}</span></md-button>
+                                    <md-button v-on:click="requestServer('ETH','sale',1,4)" class="md-raised md-primary" :disabled="buttons[4].disabled"><span :class="success.sale==4?'line-white':''">{{buttons[4].currencyType}}</span></md-button>
+                                    <md-button v-on:click="requestServer('USDT','sale',1,5)" class="md-raised md-primary" :disabled="buttons[5].disabled"><span :class="success.sale==5?'line-white':''">{{buttons[5].currencyType}}</span></md-button>
+                                    <md-button>比特币价格:{{BTC.current}}</md-button>
+                                </div>
+                            </div>
+                        </div>
+                    </md-table-toolbar>
+
+                    <md-table-row slot="md-table-row" slot-scope="{ item }">
+                        <md-table-cell md-label="#"><span>{{ item.hash }}</span></md-table-cell>
+                        <md-table-cell md-label="价格"><span>{{ item.price }}</span></md-table-cell>
+                        <md-table-cell style="text-align: left" md-label="币数量">
+                            <span>{{ format(item.tradeCount) }}</span>
+                            <span :class="isRed(item.change.tradeCount)?'red':''" v-if="item.change&&item.change.tradeCount!=0">({{item.change.tradeCount>0?'+':'-'}}{{format(item.change.tradeCount)}})</span>
+
+                        </md-table-cell>
+                        <md-table-cell style="text-align: left" md-label="挂单人数" md-sort-by="times">
+                            <span>{{ item.times }}</span>
+                            <span :class="isRed(item.change.human)?'red':''" v-if="item.change&&item.change.human!=0">({{item.change.human>0?'+':'-'}}{{format(item.change.human)}})</span>
+                        </md-table-cell>
+                    </md-table-row>
+                </md-table>
+
+            </div>
+        </div>
+
+        <div class="md-layout-item md-layout md-gutter" style="height: calc(100% - 408px)">
+            <div class="md-layout-item" style="height: 100%">
+                <md-table style="height: 100%;overflow-x: hidden" v-model="changes.buy.result" md-sort="name" md-sort-order="asc" md-card md-fixed-header>
+                    <md-table-row slot="md-table-row" slot-scope="{ item }">
+                        <md-table-cell md-label="#"><span>{{ item.hash }}</span></md-table-cell>
+                        <md-table-cell md-label="价格"><span>{{ item.price }}</span></md-table-cell>
+
+                        <md-table-cell style="text-align: left" md-label="币数量变化">
+                            <span :class="isRed(item.tradeCount)?'red':''">{{item.tradeCount>=0?'+':'-'}}{{format(item.tradeCount)}}</span>
+                        </md-table-cell>
+                        <md-table-cell style="text-align: left" md-label="挂单人数变化" md-sort-by="times">
+                            <span :class="isRed(item.human)?'red':''">{{item.human>=0?'+':'-'}}{{format(item.human)}}</span>
+                        </md-table-cell>
+                        <md-table-cell style="text-align: left" md-label="时间">
+                            <span>{{item.now}}</span>
+                        </md-table-cell>
+                    </md-table-row>
+                </md-table>
+
+            </div>
+            <div class="md-layout-item" style="height: 100%">
+                <md-table style="height: 100%;overflow-x: hidden" v-model="changes.sale.result" md-sort="name" md-sort-order="asc" md-card md-fixed-header>
+
+                    <md-table-row slot="md-table-row" slot-scope="{ item }">
+                        <md-table-cell md-label="#"><span>{{ item.hash }}</span></md-table-cell>
+                        <md-table-cell md-label="价格"><span>{{ item.price }}</span></md-table-cell>
+                        <md-table-cell style="text-align: left" md-label="币数量变化">
+                            <span :class="isRed(item.tradeCount)?'red':''">{{item.tradeCount>=0?'+':'-'}}{{format(item.tradeCount)}}</span>
+                        </md-table-cell>
+                        <md-table-cell style="text-align: left" md-label="挂单人数变化" md-sort-by="times">
+                            <span :class="isRed(item.human)?'red':''">{{item.human>=0?'+':'-'}}{{format(item.human)}}</span>
+                        </md-table-cell>
+                        <md-table-cell style="text-align: left" md-label="时间">
+                            <span>{{item.now}}</span>
+                        </md-table-cell>
+                    </md-table-row>
+                </md-table>
+
+            </div>
+        </div>
+
+    </md-content>
+</div>
+<!--<script src="socket.io.js"></script>-->
+<script src="https://unpkg.com/vue"></script>
+<script src="https://unpkg.com/vue-material@beta"></script>
+<script src="https://cdn.bootcss.com/jquery/2.2.4/jquery.js"></script>
+<script>
+    Date.prototype.format = function(fmt) {
+        var o = {
+            "M+" : this.getMonth()+1,                 //月份
+            "d+" : this.getDate(),                    //日
+            "h+" : this.getHours(),                   //小时
+            "m+" : this.getMinutes(),                 //分
+            "s+" : this.getSeconds(),                 //秒
+            "q+" : Math.floor((this.getMonth()+3)/3), //季度
+            "S"  : this.getMilliseconds()             //毫秒
+        };
+        if(/(y+)/.test(fmt)) {
+            fmt=fmt.replace(RegExp.$1, (this.getFullYear()+"").substr(4 - RegExp.$1.length));
+        }
+        for(var k in o) {
+            if(new RegExp("("+ k +")").test(fmt)){
+                fmt = fmt.replace(RegExp.$1, (RegExp.$1.length==1) ? (o[k]) : (("00"+ o[k]).substr((""+ o[k]).length)));
+            }
+        }
+        return fmt;
+    };
+    var test = false;
+    Vue.use(VueMaterial.default)
+    new Vue({
+        el: '#app',
+        data:function () {
+            return {
+                currencyType:['BTC','USDT','ETH'],
+                saleType:['sale','buy'],
+                buttons:[
+                    {disabled:false,currencyType:'BTC',type:1},
+                    {disabled:false,currencyType:'ETH',type:1},
+                    {disabled:false,currencyType:'USDT',type:1},
+                    {disabled:false,currencyType:'BTC',type:0},
+                    {disabled:false,currencyType:'ETH',type:0},
+                    {disabled:false,currencyType:'USDT',type:0}
+                ],
+                BTC:{
+                    current:0
+                },
+                success:{
+                    buy:null,
+                    sale:null
+                },
+                result:{
+                    buy:{
+                        currency:"",
+                        result:[]
+                    },
+                    sale:{
+                        currency:"",
+                        result:[]
+                    }
+                },
+                history:{
+                    buy:{
+                        currency:"",
+                        result:{}
+                    },
+                    sale:{
+                        currency:"",
+                        result:{}
+                    }
+                },
+                changes:{
+                    buy:{
+                        currency:"",
+                        result:[],
+                        cache:[]
+                    },
+                    sale:{
+                        currency:"",
+                        result:[],
+                        cache:[]
+                    }
+                },
+                timers:{
+                    buy:{
+                        currency:'USDT',
+                        index:2
+                    },
+                    sale:{
+                        currency:'USDT',
+                        index:5
+                    }
+                }
+            }
+        },
+        methods:{
+            updateTick(tick){
+                this.BTC.current = tick.close;
+            },
+            isRed(num){
+                return Math.abs(num)>=40000;
+            },
+            getNow(){
+                var now = new Date(Date.now());
+                return now.format('hh:mm');
+            },
+            format:function(num){
+                num = Math.round(Number(num)*1000000)/1000000;
+                num = Math.abs(num);
+                var result = [ ], counter = 0;
+                if (num*10!=Math.ceil(num)*10){
+                    return num;
+                }
+                num = (num || 0).toString().split('');
+                for (var i = num.length - 1; i >= 0; i--) {
+                    counter++;
+                    result.unshift(num[i]);
+                    if (!(counter % 4) && i != 0) { result.unshift(','); }
+                }
+                return result.join('');
+            },
+            requestServer:function (currency,type,page,index) {
+                var self = this;
+                self.timers[type].currency = currency;
+                self.timers[type].index = index;
+                self.buttons[index].disabled = true;
+                //var host = 'http://localhost:8080';
+                var url = 'query?coinType='+currency+'&tradeDesc='+type+'&startPage='+page;
+                $.ajax({
+                    url:url,
+                    method:'GET',
+                    success:function (data) {
+                        self.buttons[index].disabled = false;
+                        var status = data.status;
+                        if (status != "1"){
+                            //失败
+                            console.log(status)
+                        }
+                        else {
+                            var result = data.result;
+                            self.success[type] = index;
+                            var changes = self.changes[type];
+                            var history = self.history[type];
+                            if (history&&currency==history.currency){
+                                //对历史进行处理
+                                Object.keys(history.result).forEach(function (price) {
+                                    var historyInfo = history.result[price];
+                                    var info = result[price];
+                                    if (info&&historyInfo){
+                                        if (currency!='BTH'){
+                                            info.tradeCount = Math.floor(info.tradeCount);
+                                        }
+                                        info.change = {tradeCount:info.tradeCount-historyInfo.tradeCount,human:info.times-historyInfo.times};
+                                    }
+                                })
+                            }
+                            var _result = [];
+                            var prices = Object.keys(result).sort(function(a,b){return (type=='sale'?b-a:a-b)});
+                            prices.forEach(function (price,index) {
+                                if (index>=6) return;
+                                var info = result[price];
+                                if (currency!='BTH'){
+                                    info.tradeCount = Math.floor(info.tradeCount);
+                                }
+                                _result.push({price:price,tradeCount:info.tradeCount,times:info.times,change:info.change,hash:index+1});
+                                if (index>=0&&index<=1){
+                                    if (changes.currency==currency){
+                                        //记录变化
+                                        if (!info.change||info.change.tradeCount==0&&info.change.human==0){
+                                            return;
+                                        }
+                                        info.change.price = price;
+                                        info.change.now = self.getNow();
+                                        changes.cache.push(info.change);
+                                    }
+                                    else {
+                                        changes.currency = currency;
+                                        changes.result = [];//重新记录
+                                        changes.cache = [];
+                                    }
+                                }
+                            });
+                            changes.result = changes.cache.concat(changes.result);
+                            changes.cache = [];
+                            changes.result = changes.result.map(function (ele,index) {
+                                if (!ele){
+                                    ele = {tradeCount:0,human:0}
+                                }
+                                ele.hash = index+1;
+                                return ele;
+                            });
+                            if (changes.result.length>20){
+                                changes.result.splice(20,changes.result.length);
+                            }
+
+                            self.result[type].currency = currency;
+                            self.result[type].result = _result;
+                            self.history[type].currency = currency;//记录历史
+                            self.history[type].result = result;
+                        }
+                    },
+                    error:function (err) {
+                        self.buttons[index].disabled = false;
+                        console.log(err)
+                    }
+                })
+            }
+        },
+        mounted:function () {
+            console.log('初始化完毕');
+            var self = this;
+            var buy = self.timers.buy;
+            var sale = self.timers.sale;
+            self.requestServer(buy.currency,'buy',1,buy.index);
+            self.requestServer(sale.currency,'sale',1,sale.index);
+            var url = test?'http://45.56.92.212:3000':'/';
+            //var socket = io(url);
+            //socket.on('tick',function (tick) {
+            //    self.updateTick(tick)
+            //});
+            buy.timer = setInterval(function () {
+                self.requestServer(buy.currency,'buy',1,buy.index)
+            },10*1000);
+            sale.timer = setInterval(function () {
+                self.requestServer(sale.currency,'sale',1,sale.index);
+            },10*1000);
+        }
+    })
+</script>
+</body>
+</html>
